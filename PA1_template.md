@@ -4,6 +4,7 @@
 ## Loading and preprocessing the data
 Firstly we need to load the dataset required for this assessment, and inspect the structure of the data
 
+
 ```r
 activity <- read.csv(unz("activity.zip", "activity.csv"))
 head(activity)
@@ -32,6 +33,7 @@ str(activity)
 
 
 ## What is mean total number of steps taken per day?
+
 We will calculate the total number of steps taken per day 
 
 ```r
