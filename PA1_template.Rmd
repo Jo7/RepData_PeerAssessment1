@@ -4,22 +4,150 @@ output:
   html_document:
     keep_md: true
 ---
-
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
 
 ## Loading and preprocessing the data
-
+Firstly we need to load the dataset required for this assessment, and inspect the structure of the data
+```{r loading data}
+activity <- read.csv(unz("activity.zip", "activity.csv"))
+head(activity)
+str(activity)
+```
 
 
 ## What is mean total number of steps taken per day?
+We will calculate the total number of steps taken per day 
+```{r summarise by day}
+library(dplyr)
+#summarise data by day and calculate sum of steps taken each day
+TotSteps <- activity %>% group_by(date) %>% summarise(steps = sum(steps))
+head(TotSteps)
+```
+
+
+Next we will create a histogram of the total number of steps taken each day
+```{r histogram TotSteps}
+hist(TotSteps$steps, main = "Total steps per day", xlab = "Steps")
+```
+
+
+And now we will calculate and report the mean and median of the total number of steps taken per day. 
+```{r Mean & Med}
+MeanTotSteps <- mean(TotSteps$steps, na.rm = T)
+MeanTotSteps
+MedTotSteps <- median(TotSteps$steps, na.rm = T)
+MedTotSteps
+```
+The mean of the total number of steps taken per day is `r MeanTotSteps` and the median is `r MedTotSteps`.  
 
 
 
 ## What is the average daily activity pattern?
+Firstly we will calculate the average number of steps taken per interval, averaged across all days.
+```{r avgDailyPat}
+#summarise data by interval and calculate mean number of steps taken per interval
+avgDailyPat <- activity %>% group_by(interval) %>% summarise(MeanSteps = mean(steps, na.rm=T))
+head(avgDailyPat)
+```
+
+
+Now we will create a time series plot of the 5-minute interval (x-axis) versus the average average number of steps taken, averaged across all days (y-axis).
+```{r time series plot}
+plot(avgDailyPat$interval, avgDailyPat$MeanSteps, type = "l",
+     xlab = "Daily 5-minute intervals", 
+     ylab = "Average steps",
+     main = "Average Daily Activity Pattern")
+```
+
+
+Which 5-minute interval, on average across all the days in the dataset, contains
+the maximum number of steps?
+```{r maxinterval}
+MaxStepsInterval <- avgDailyPat$interval[which.max(avgDailyPat$MeanSteps)]
+MaxStepsInterval
+```
+The 5-minute interval that contains the maximum number of steps is interval `r MaxStepsInterval`.
 
 
 
 ## Imputing missing values
+To input missing values we first need to calculate and report on the total number of missing values. 
+```{r Missing values}
+Missing <- sum(is.na(activity$steps))
+Missing
+```
+There are `r Missing` missing values.
+
+
+We will now use the mean for the 5-minute intervals as a substitute for missing values. We will create a new dataset equal to the original dataset, however we will fill in the missing values. 
+```{r New Dataset}
+#firstly merge the original dataset with the dataset of means for 5-min intervals
+merge <- merge(activity, avgDailyPat, by = "interval")
+#arrange by date and interval (personal preference)
+merge <- merge %>% arrange(date, interval)
+#create new variable called "NewSteps", if data is available from original dataset it will
+#fill with those observations, otherwise it will fill with mean for 5-min interval
+merge$NewSteps <- ifelse(!is.na(merge$steps), merge$steps, merge$MeanSteps)
+head(merge)
+#select necessary columns
+NewActivity <- merge %>% select(NewSteps, date, interval)
+head(NewActivity)
+```
+
+
+Now we will create a histogram of the total number of steps taken each day using this new data set and calculate and report on the mean and median total number of steps taken per day. 
+To create our histogram we first need to summarise our data by date. 
+```{r new summarise per day}
+NewTotSteps <- NewActivity %>% group_by(date) %>% summarise(steps = sum(NewSteps))
+head(NewTotSteps)
+```
+
+
+```{r new histogram}
+hist(NewTotSteps$steps, main = "Total steps per day", xlab = "Steps")
+```
+
+
+```{r new mean and median}
+NewMean <- mean(NewTotSteps$steps)
+NewMean
+NewMed <- median(NewTotSteps$steps)
+NewMed
+```
+Using the new data set with filled missing values, the mean of the total number of steps taken each day is `r NewMean` and the median is `r NewMed`. 
 
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+To determine if there are differences in activity patterns between weekdays and weekends we will create a new factor variable in the dataset with two levels - “weekday” and 
+“weekend” indicating whether a given date is a weekday or weekend day.
+```{r Daytype}
+#first create a new variable of weekday
+NewActivity$Weekday <- weekdays(as.Date(NewActivity$date))
+#then create a new factor variable of day type using Weekday to determine if new variable is "Weedend" or "Weekday"
+NewActivity$DayType <- as.factor(ifelse(NewActivity$Weekday == c("Saturday", "Sunday"), "Weekend", "Weekday"))
+```
+
+
+Now we will create a panel plot containing a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). 
+To do this we first need to summarise our data by weekday/weekend and interval.
+```{r new average daily pattern}
+avgDailyPat2 <- NewActivity %>% group_by(DayType, interval) %>% summarise(MeanSteps = mean(NewSteps))
+head(avgDailyPat2)
+```
+
+
+```{r ggplot}
+library(ggplot2)
+daytype <- ggplot(avgDailyPat2, aes(interval, MeanSteps)) + geom_line() + 
+        facet_wrap(~DayType, nrow = 2) + theme_bw() +
+        labs(title = "Average Daily Activity Pattern by Weekday or Weekend") +
+        labs(x="Daily 5-minute intervals", y = "Average steps")+
+        theme(plot.title = element_text(hjust = 0.5))
+daytype
+```
+
+
+We can clearly see from the plot that there are differences in the activity patterns between weekdays and weekends. During weekdays the average activity starts earlier and there is a definitel spike in activity in the morning that peters off throughout the rest of the day, whereas the weekends show a more consistent level of activity throughout the day. 
