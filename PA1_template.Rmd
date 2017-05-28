@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Loading and preprocessing the data
 Firstly we need to load the dataset required for this assessment, and inspect the structure of the data
 
-```{r loading data}
+```{r loading_data}
 activity <- read.csv(unz("activity.zip", "activity.csv"))
 head(activity)
 str(activity)
@@ -21,7 +21,7 @@ str(activity)
 ## What is mean total number of steps taken per day?
 
 We will calculate the total number of steps taken per day 
-```{r summarise by day}
+```{r summarise_by_day}
 library(dplyr)
 #summarise data by day and calculate sum of steps taken each day
 TotSteps <- activity %>% group_by(date) %>% summarise(steps = sum(steps))
@@ -30,13 +30,13 @@ head(TotSteps)
 
 
 Next we will create a histogram of the total number of steps taken each day
-```{r histogram TotSteps}
+```{r histogram_TotSteps}
 hist(TotSteps$steps, main = "Total steps per day", xlab = "Steps")
 ```
 
 
 And now we will calculate and report the mean and median of the total number of steps taken per day. 
-```{r Mean & Med}
+```{r Mean&Med}
 MeanTotSteps <- mean(TotSteps$steps, na.rm = T)
 MeanTotSteps
 MedTotSteps <- median(TotSteps$steps, na.rm = T)
@@ -56,7 +56,7 @@ head(avgDailyPat)
 
 
 Now we will create a time series plot of the 5-minute interval (x-axis) versus the average average number of steps taken, averaged across all days (y-axis).
-```{r time series plot}
+```{r time_series_plot}
 plot(avgDailyPat$interval, avgDailyPat$MeanSteps, type = "l",
      xlab = "Daily 5-minute intervals", 
      ylab = "Average steps",
@@ -84,7 +84,7 @@ There are `r Missing` missing values.
 
 
 We will now use the mean for the 5-minute intervals as a substitute for missing values. We will create a new dataset equal to the original dataset, however we will fill in the missing values. 
-```{r New Dataset}
+```{r NewDataset}
 #firstly merge the original dataset with the dataset of means for 5-min intervals
 merge <- merge(activity, avgDailyPat, by = "interval")
 #arrange by date and interval (personal preference)
@@ -101,18 +101,18 @@ head(NewActivity)
 
 Now we will create a histogram of the total number of steps taken each day using this new data set and calculate and report on the mean and median total number of steps taken per day. 
 To create our histogram we first need to summarise our data by date. 
-```{r new summarise per day}
+```{r new_summarise_per_day}
 NewTotSteps <- NewActivity %>% group_by(date) %>% summarise(steps = sum(NewSteps))
 head(NewTotSteps)
 ```
 
 
-```{r new histogram}
+```{r newhistogram}
 hist(NewTotSteps$steps, main = "Total steps per day", xlab = "Steps")
 ```
 
 
-```{r new mean and median}
+```{r NewMean&Median}
 NewMean <- mean(NewTotSteps$steps)
 NewMean
 NewMed <- median(NewTotSteps$steps)
@@ -135,7 +135,7 @@ NewActivity$DayType <- as.factor(ifelse(NewActivity$Weekday == c("Saturday", "Su
 
 Now we will create a panel plot containing a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). 
 To do this we first need to summarise our data by weekday/weekend and interval.
-```{r new average daily pattern}
+```{r new_average_daily_pattern}
 avgDailyPat2 <- NewActivity %>% group_by(DayType, interval) %>% summarise(MeanSteps = mean(NewSteps))
 head(avgDailyPat2)
 ```

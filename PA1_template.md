@@ -82,7 +82,7 @@ Next we will create a histogram of the total number of steps taken each day
 hist(TotSteps$steps, main = "Total steps per day", xlab = "Steps")
 ```
 
-![](PA1_template_files/figure-html/histogram TotSteps-1.png)<!-- -->
+![](PA1_template_files/figure-html/histogram_TotSteps-1.png)<!-- -->
 
 
 And now we will calculate and report the mean and median of the total number of steps taken per day. 
@@ -139,7 +139,7 @@ plot(avgDailyPat$interval, avgDailyPat$MeanSteps, type = "l",
      main = "Average Daily Activity Pattern")
 ```
 
-![](PA1_template_files/figure-html/time series plot-1.png)<!-- -->
+![](PA1_template_files/figure-html/time_series_plot-1.png)<!-- -->
 
 
 Which 5-minute interval, on average across all the days in the dataset, contains
@@ -237,7 +237,7 @@ head(NewTotSteps)
 hist(NewTotSteps$steps, main = "Total steps per day", xlab = "Steps")
 ```
 
-![](PA1_template_files/figure-html/new histogram-1.png)<!-- -->
+![](PA1_template_files/figure-html/newhistogram-1.png)<!-- -->
 
 
 
